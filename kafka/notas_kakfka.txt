@@ -1,0 +1,40 @@
+o Kafka, ele é o processador dessas mensagens, de jogar de um lado para cá
+processador nesse sentido de conectar tudo,
+
+Algumas informações básicas, o Kafka tem que armazenar em algum lugar e o lugar onde o Kafka armazena, isso por padrão, se chama zookeeper
+
+> baixamos o binário do kafka e descompactamos em uma pasta da nossa escolha (ja traz o zookeper)
+
+1 - levantar zookeper
+bin/zookeeper-server-start.sh config/zookeeper.properties
+
+2- rodar o kafka 
+bin/kafka-server-start.sh config/server.properties
+
+3 - criando topico chamado B3_SINAL
+bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic B3_SINAL
+
+4 - listar topicos
+bin/kafka-topics.sh --list --bootstrap-server localhost:9092
+
+4.1 - descrevendo os topicos 
+bin/kafka-topics.sh --describe --bootstrap-server localhost:9092
+
+5 - enviar msg's 
+ - produtor > bin/kafka-console-producer.sh --broker-list localhost:9092 --topic B3_SINAL
+ >> cada linha digitada é uma mensagem
+
+
+6 - receber msg's - 2 formas
+ > comando abaixo vai consumir novas msg's
+ > bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic B3_SINAL
+
+ >  > comando abaixo vai consumir as msg's desde o inicio
+ > bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic B3_SINAL --from-beginning 
+
+>>> quando rodamos o programa que simula o consumer (listener) faltou configurar o grupo  - quando criamos 
+    um consumer, temos que criar um grupo - dentro do grupo apenas uma instância receberá as mensagens
+
+
+
+
