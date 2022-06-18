@@ -38,6 +38,14 @@ bin/kafka-server-start.sh config/server.properties
 - comando abaixo vai consumir as msg's desde o inicio
   - bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic SINAL --from-beginning
 
+7 - alterando o número de partições de um tópico
+
+    - bin/kafka-topics.sh --alter --bootstrap-server localhost:9092 --topic B3_SINAL --partitions 4
+
+8 - consultar os grupos de consumo
+
+    - bin/kafka-consumer-groups.sh --all-groups --bootstrap-server localhost:9092 --describe
+
 ## Conceitos
 
 - quando rodamos o programa que simula o consumer (listener) faltou configurar o grupo - quando criamos um consumer, temos que criar um grupo - dentro do grupo apenas uma instância receberá as mensagens.
