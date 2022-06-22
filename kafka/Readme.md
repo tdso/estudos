@@ -50,6 +50,7 @@ bin/kafka-server-start.sh config/server.properties
 
 - o Kafka é o processador das mensagens, de jogar de um lado para o outro, processador no sentido de conectar tudo;
 - algumas informações básicas, o Kafka tem que armazenar em algum lugar e o lugar onde o Kafka armazena, por padrão, se chama zookeeper;
+- zookeper controla o status dos nós do cluster kafka, acompanha tópicos, partições, armazena informações do estado do cluster, dados dos consumidores e o estado de outros intermediários;
 - quando baixamos o binário do kafka, o zookeper está incluído;
 
 Paralelizando o recebimento
@@ -58,6 +59,11 @@ Paralelizando o recebimento
 - Para que o kafka consiga efetuar esse balanceamento das mensagens entre as instâncias, ele faz uso das partições. O tópico (ou a fila) tem que ser configurado para ter mais de uma partição. Por padrão, o arquivo server.properties está configurado para 1 partição para cada tópico.
 - De nada adianta ter várias instâncias de um consumer rodando, e ter somente 1 partição. Uma instância do consumer será associado a uma partição e as outras duas instâncias não serão usadas para processamento. Para uma maior eficácia, o número de partições deve ser maior ou igual ao número de instâncias de consumer em execução.
 - Detalhe importante: o kafka usa o id (key) da mensagem para distribui-las pelas partições existentes, então use um id diferente para cada mensagem para visualizar a distribuição das mesmas nas partições do tópico.
-- Configuração importante:
+- Configuração importante: podemos definir a quantidade de mensagens que serão enviadas ao consumidor por vez. Em um cenário em que o kafka envie 1 mensagem de cada vez, o consumer recebe a mensagem, e após finalizar, envia a confirmação (commit) para o produtor que pode receber outra mensagem e uma nova mensagem é encaminhada para o consumer. Em nossos testes o essa configuração não estava para enviar 1 mensagem por vez, o consumer recebeu "X" mensagens, o que o deixou processando por um longo tempo, e antes de efetuar o commit, o kafka iniciou um rebalanceamento, e enviou novamente as mensagens para processamento. Para termos um commit rápido, setamos essa configuração (MAX_POLL_RECORDS_CONFIG) para 1.
 
+## Questões
+1 - não adianta ter um cluster de kafka e não ter do zookeper ...
 
+## Bibliografia
+
+- Kafka: The Definitive Guide - O'Reily
