@@ -48,4 +48,16 @@ bin/kafka-server-start.sh config/server.properties
 
 ## Conceitos
 
-- quando rodamos o programa que simula o consumer (listener) faltou configurar o grupo - quando criamos um consumer, temos que criar um grupo - dentro do grupo apenas uma instância receberá as mensagens.
+- o Kafka é o processador das mensagens, de jogar de um lado para o outro, processador no sentido de conectar tudo;
+- algumas informações básicas, o Kafka tem que armazenar em algum lugar e o lugar onde o Kafka armazena, por padrão, se chama zookeeper;
+- quando baixamos o binário do kafka, o zookeper está incluído;
+
+Paralelizando o recebimento
+
+- quando criamos um consumidor (consumer) temos que associá-lo a um grupo de consumo, o kafka enviará todas as mensagens para esse grupo, mas apenas uma instância dentro do grupo receberá a mensagem. Na situação de ter duas instâncias de um mesmo consumer rodando, e escutando o mesmo grupo, o kafka distribuirá as mensagens para cada instância, paralelizando o processamento.
+- Para que o kafka consiga efetuar esse balanceamento das mensagens entre as instâncias, ele faz uso das partições. O tópico (ou a fila) tem que ser configurado para ter mais de uma partição. Por padrão, o arquivo server.properties está configurado para 1 partição para cada tópico.
+- De nada adianta ter várias instâncias de um consumer rodando, e ter somente 1 partição. Uma instância do consumer será associado a uma partição e as outras duas instâncias não serão usadas para processamento. Para uma maior eficácia, o número de partições deve ser maior ou igual ao número de instâncias de consumer em execução.
+- Detalhe importante: o kafka usa o id (key) da mensagem para distribui-las pelas partições existentes, então use um id diferente para cada mensagem para visualizar a distribuição das mesmas nas partições do tópico.
+- Configuração importante:
+
+
