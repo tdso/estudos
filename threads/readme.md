@@ -61,6 +61,9 @@ Podemos criar através da classe Thread, passando uma tarefa que implementa a in
 
 - newFixedThreadPool (integer) - integer representa o número fixo de threads
 - newCachedThreadPool() - a JVM vai administrar a criação e a destruição das threads
+  Ex:
+  ExecutorService pool = Executors.newFixedThreadPool(4);
+  pool.execute(task);
 
 Os métodos acima retornam um ExecutorService que possui o método execute() para chamar uma tarefa que implementa a interface Runnable e Callable (como verá mais adiante).
 
@@ -74,3 +77,6 @@ Para executar:
 
 Callable retorna um objeto Future e para obter o resultado basta chamar o método get().
 Porém o método get() é bloqueante então caso não deseje bloquear a thread, recomenda-se que se crie outra thread para obter o resultado.
+Caso o Callable não atingiu o tempo especificado e não acabou a execução, uma exception será gerada e no catch devemos chamar o método cancel() para cancelar a execução.
+
+Nota: FutureTask > permite rodar um Callable sem um pool de thread. FutureTask recebe no construtor um Callable, e implementa a interface Runnable, assim FutureTask é iniciada com o método start(), e obtemos o resultado com o método get(). FutureTask é um intermediário entre o Runnable e o Callable.
