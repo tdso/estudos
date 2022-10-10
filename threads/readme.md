@@ -1,4 +1,4 @@
-Objeto# Notas Leitura Threads
+# Notas Leitura Threads
 
 Processos (arquivos executáveis) executam concorrentemente no SO. Threads rodam concorrentemente em um mesmo processo.
 
