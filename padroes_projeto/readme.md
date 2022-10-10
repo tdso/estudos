@@ -27,9 +27,10 @@
   }
 ```
 
-Variações
-1 - o método abstrato createIphone() sem argumento sugere que devemos ter uma classe concreta para cada tipo de Iphone.
-2 - pode-se passar um argumento para o método orderIphone() para que ele possa decidir qual instância criar. Assim esse método deve ser static e o método abstrato não seria mais necessário.
+<b>Variações</b>
+
+- o método abstrato createIphone() sem argumento sugere que devemos ter uma classe concreta para cada tipo de Iphone.
+- pode-se passar um argumento para o método orderIphone() para que ele possa decidir qual instância criar. Assim esse método deve ser static e o método abstrato não seria mais necessário.
 
 ### Abstract Factory
 
@@ -51,9 +52,9 @@ Para ilustrar, tomemos o exemplo acima do Iphone. Consideremos que as operaçõe
   }
 ```
 
-Com base no modelo acima passo a ter implementações concretas para cada interface.
+- Com base no modelo acima passo a ter implementações concretas para cada interface.
 
-Atentar para quando tiver operações que podem variar em função de alguma variável, se não essas operações não seriam candidatas a serem extraídas para interface.
+- Atentar para quando tiver operações que podem variar em função de alguma variável, se não essas operações não seriam candidatas a serem extraídas para interface.
 
 ### Padrão Singleton
 
@@ -67,3 +68,42 @@ Atentar para quando tiver operações que podem variar em função de alguma var
     Desta forma você pode ter N instâncias compartilhando a variável static.
 
 ### Padrão Builder
+
+- Delegar a criação do objeto para um builder ao invés de instanciar o objeto concreto.
+- Divide a criação do objeto em partes.
+- Encapsula a criação e a montagem dessas partes em um builder separado.
+- Os métodos da classe Builder nada mais são que os setters das propriedades do objeto que se deseja criar. Os métodos do Builder retornam a instância do builder, permitindo que tenhamos uma API fluente e um único método que retorna a instância desejada após as propriedades terem sido configuradas.
+
+#### Padrão Builder com inner Class
+
+- trabalha com objeto imutável - sem métodos set
+- construtor dentro da classe (classe interna)
+- a classe builder é interna (static), a classe externa é similar a um POJO sem os métodos setters. Os atributos da classe externa devem ser final.
+- como vimos acima os métodos da classe builder retornam um builder e um único método retorna o objeto que o builder propõem a criar.
+
+```
+  Carteira carteira = new Carteira.Builder();
+```
+
+    - Carteira seria a classe do tipo POJO e Builder a classe interna
+
+- PS > cuidado com listas > só o final não garante a imutabilidade das listas
+
+### Padrão Prototype
+
+- Usa o conceito de cópia do objeto.
+- Diferenciar cópia rasa da profunda.
+- Clone do Java = cópia rasa - quando temos um objeto dentro do outro, esse objeto interno compartilha o mesmo endereço quando o objeto é clonado.
+- Cópia profunda temos que reescrever o método clone, para isso temos que implementar a interface Clonable.
+
+```
+  User user = new User ("John", 25, new Address("Wall Street, 12"));
+  ...
+  public User clone() throws CloneNotSupportException {
+    User userClone = (User) super.clone();
+    userClone.address = (Address) user.address.clone();
+    return userClone();
+  }
+```
+
+- Se address tiver outro objeto dentro, implemente o clone na classe deste objeto, e assim um clone vai chamando o outro.
