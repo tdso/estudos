@@ -41,13 +41,13 @@ Design para Falhas
   - Quando um aplicativo faz uma solicitação de conexão com um componente atrás do bulkhead, este verifica a disponibilidade de conexão com o componente solicitado, se o número de conexão estiver abaixo do limite, o bulkhead aloca a conexão, quando não são permitidas mais conexões simultâneas, o bulkead aguarda um intervalo de tempo definido, se nenhuma conexão ficar disponível dentro do período, o bulkhead rejeita a chamada.
   - Exs implementações: microprofile fault tolerance, hystrix, mesh, camel EIP, Disjuntor Apache Commons
 
-## Microprofile
+### Microprofile
 
 - Especificação Microprofile define um plataforma que otimiza o java para uma arquitetura baseada em microserviços e fornece portabilidade em vários tempos de execução.
 
 - Microprofile não é uma especificação completa como o JSR. Versão inicial: JAX-RS, CDI, JSON-P.
 
-### Quarkus
+## Quarkus
 
 - Estrutura nativa em nuvem > plataforma de implantação > container
 - Inicialização rápida
@@ -58,110 +58,64 @@ Design para Falhas
   - JVM precisa saber no momento da compilação quais classes serão usadas, para ofertar suporte executáveis nativos.
   - durante a compilação o GraalVM remove todas as classes desnecessárias, bibliotecas dependentes e da JVM.
 
-#### Implementação Microserviços
+### Implementação Microserviços
 
--
+- Beans é qualquer objeto gerenciado pelo CDI - um bean especifica o tipo e a semântica dos outros beans dos quais depende.
+- Ex de anotações que definem um bean: @ApplicationScoped, @SessionScoped, @ RequestScoped
+
+### DI no Quarkus
+
+- implementa apenas um subconjunto de especificação CDI
+- ignora descritores no arquivo beans.xml
+- implementado pelo Quarkus.Arc
+
+### Revisões da Especificação
+
+- JAX-RS - criação serviços web padrão rest, uso de anotação no nível de classe ou método
+- JSON-b - manipular json - camada de ligação da estrutura do json para objetos java
+- Para essa ligação funcionar as classes "pojo" devem ter:
+  - construtores pojo sem parâmetros ou
+  - anotar o construtor com @JsonbCreator e os nomes de parâmetros devem corresponder aos nomes das propriedades.
+  - os atributos devem ser públicos 
+  - existir métodos get/set para cada atributo
+> quando não quiser deserializar um atributo > @JsonbTransient
+
+> se quiser ignorar a propriedade para serialização use o @JsonbTransient no método get
+
+### Persistência no Quarkus
+
+- Dependências necessárias para persistência:
+  - quarkus-hibernate-orm
+  - quarkus-hibernate-orm-panache
+  - driver do BD: h2 / postgres ... etc
+- Todas as configurações em um único arquivo: application.properties - ex:
+  - quarkus.datasource.db-kind=
+  - quarkus.datasource.username=
+  - quarkus.datasource.password=
+  - quarkus.datasource.jdbc.url=
+  - quarkus.hibernate-orm.database.generation=drop-and-create
+
+#### Implementações
+
+- EntityManager = tem que injetá-lo
+- Panache com Repository - objetivo separar a lógica de recuperação de dados e seu mapeamento para entidades.
+  - deve-se criar um repositório que extende de PanacheRepository para a entidade e injetá-lo onde for preciso - ex:
+  ```
+  @ApplicationScoped
+  public class ExpenseRepository implements PanacheRepository<Expense { ... }
+  ```
+
+- Panache com Active Record - define os métodos que acessam a entidade na própria classe da entidade
+- basta extender PanacheEntity 
+  - os atributos da entidade devem ser públicos 
+  - os atributos devem ser acessados com métodos get/set
+  - possível criar métodos estáticos personalizados que executam consultas especifícas
+
+> pasta: src/main/resources = pode-se criar o arquivo import.sql com instruções sql para popular ou criar o banco de dados
+
+  ** ex pag 57 e 68
+
+
 
 ---
 
-- Como deixar o código desacoplado das classes concretas?
-- O método Factory Method decide qual implementação retornar de uma instância baseado em alguma regra.
-  ![imagem](iphone.png)
-- A classe factory deve conseguir criar a instância de cada um dos tipos de iphone de acordo com os valores informados.
-
-```
-  abstract class IphoneFactory {
-    public Iphone orderIphone(){
-        Iphone iphone = null;
-        iphone = createIphone();
-        iphone.getHardware();
-        iphone.getAssemble();
-        iphone.getCertificate();
-        iphone.getPack();
-        return iphone;
-    }
-    protected abstract Iphone createIphone();
-    ...
-  }
-```
-
-<b>Variações</b>
-
-- o método abstrato createIphone() sem argumento sugere que devemos ter uma classe concreta para cada tipo de Iphone.
-- pode-se passar um argumento para o método orderIphone() para que ele possa decidir qual instância criar. Assim esse método deve ser static e o método abstrato não seria mais necessário.
-
-### Abstract Factory
-
-- Como escrever um código onde as classes instanciadas possam variar dentro da mesma interface?
-- Como garantir que um conjunto de objetos relacionados possam ser criados mantendo um contexto único (cenário de aplicação)?
-
-- Extraindo a lógica de criação dos objetos para um abstract factory.
-- Criando uma implementação do abstract factory para cada contexto, garantindo que todos os objetos estão relacionados.
-
-Para ilustrar, tomemos o exemplo acima do Iphone. Consideremos que as operações de certificação e empacotamento variam de pais para pais. Podemos decompor em interfaces as operações e depois criar uma interface génerica que engloba as outras interfaces (operações).
-
-```
-  Interface Packing;
-  Interface Certificado;
-
-  Interface CountryRules {
-    Interface packing;
-    Interface Certificado;
-  }
-```
-
-- Com base no modelo acima passo a ter implementações concretas para cada interface.
-
-- Atentar para quando tiver operações que podem variar em função de alguma variável, se não essas operações não seriam candidatas a serem extraídas para interface.
-
-### Padrão Singleton
-
-- Como garantir que uma classe tenha uma única instância?
-
-- Escondendo o construtor da classe com modificador private, e definindo um ponto de criação único, estático, que retorna uma única instância.
-
-- Ressalva: a necessidade de ter um método estático inviabiliza o uso de interface. Como contorno temos o padrão monostate:
-  - atributo private, mas static - inicializado em um bloco static;
-  - assim a classe pode ter um construtor público;
-    Desta forma você pode ter N instâncias compartilhando a variável static.
-
-### Padrão Builder
-
-- Delegar a criação do objeto para um builder ao invés de instanciar o objeto concreto.
-- Divide a criação do objeto em partes.
-- Encapsula a criação e a montagem dessas partes em um builder separado.
-- Os métodos da classe Builder nada mais são que os setters das propriedades do objeto que se deseja criar. Os métodos do Builder retornam a instância do builder, permitindo que tenhamos uma API fluente e um único método que retorna a instância desejada após as propriedades terem sido configuradas.
-
-#### Padrão Builder com inner Class
-
-- trabalha com objeto imutável - sem métodos set
-- construtor dentro da classe (classe interna)
-- a classe builder é interna (static), a classe externa é similar a um POJO sem os métodos setters. Os atributos da classe externa devem ser final.
-- como vimos acima os métodos da classe builder retornam um builder e um único método retorna o objeto que o builder propõem a criar.
-
-```
-  Carteira carteira = new Carteira.Builder();
-```
-
-    - Carteira seria a classe do tipo POJO e Builder a classe interna
-
-- PS > cuidado com listas > só o final não garante a imutabilidade das listas
-
-### Padrão Prototype
-
-- Usa o conceito de cópia do objeto.
-- Diferenciar cópia rasa da profunda.
-- Clone do Java = cópia rasa - quando temos um objeto dentro do outro, esse objeto interno compartilha o mesmo endereço quando o objeto é clonado.
-- Cópia profunda temos que reescrever o método clone, para isso temos que implementar a interface Clonable.
-
-```
-  User user = new User ("John", 25, new Address("Wall Street, 12"));
-  ...
-  public User clone() throws CloneNotSupportException {
-    User userClone = (User) super.clone();
-    userClone.address = (Address) user.address.clone();
-    return userClone();
-  }
-```
-
-- Se address tiver outro objeto dentro, implemente o clone na classe deste objeto, e assim um clone vai chamando o outro.
