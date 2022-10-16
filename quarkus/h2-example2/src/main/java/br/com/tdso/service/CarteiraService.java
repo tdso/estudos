@@ -1,0 +1,50 @@
+package br.com.tdso.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import javax.enterprise.context.RequestScoped;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.transaction.Transactional;
+import br.com.tdso.model.Carteira;
+
+@RequestScoped
+public class CarteiraService {
+
+    @PersistenceContext
+    private EntityManager em;
+
+    public List<Carteira> getCarteira() {
+        String query = "getCarteira";
+        TypedQuery<Carteira> retorno = em.createNamedQuery(query, Carteira.class);
+
+        List<Carteira> ListCarteira = retorno.getResultList();
+        return ListCarteira;
+    }
+
+    @Transactional
+    public Carteira postCarteira(Carteira c) {
+        String query = "getCarteiraById";
+        TypedQuery<Carteira> retorno = em.createNamedQuery(query, Carteira.class);
+        retorno.setParameter(1, c.getIdCarteira());
+        Carteira carteiraRetorno = retorno.getSingleResult();
+
+        if (carteiraRetorno == null) {
+            return new Carteira();
+        } else {
+            query = "persist";
+            Query query_update = em.createNamedQuery(query);
+            query_update.setParameter(1, c.getMesCarteira());
+            query_update.setParameter(2, c.getAnoCarteira());
+            query_update.setParameter(3, c.getNomeCarteira());
+            query_update.setParameter(4, c.getIdCarteira());
+            query_update.executeUpdate();
+            return carteiraRetorno;
+        }
+
+    }
+
+
+}
