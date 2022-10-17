@@ -76,9 +76,9 @@ Design para Falhas
 - Para essa ligação funcionar as classes "pojo" devem ter:
   - construtores pojo sem parâmetros ou
   - anotar o construtor com @JsonbCreator e os nomes de parâmetros devem corresponder aos nomes das propriedades.
-  - os atributos devem ser públicos 
+  - os atributos devem ser públicos
   - existir métodos get/set para cada atributo
-> quando não quiser deserializar um atributo > @JsonbTransient
+    > quando não quiser deserializar um atributo > @JsonbTransient
 
 > se quiser ignorar a propriedade para serialização use o @JsonbTransient no método get
 
@@ -99,23 +99,203 @@ Design para Falhas
 
 - EntityManager = tem que injetá-lo
 - Panache com Repository - objetivo separar a lógica de recuperação de dados e seu mapeamento para entidades.
+
   - deve-se criar um repositório que extende de PanacheRepository para a entidade e injetá-lo onde for preciso - ex:
+
   ```
   @ApplicationScoped
   public class ExpenseRepository implements PanacheRepository<Expense { ... }
   ```
 
 - Panache com Active Record - define os métodos que acessam a entidade na própria classe da entidade
-- basta extender PanacheEntity 
-  - os atributos da entidade devem ser públicos 
+- basta extender PanacheEntity
+  - os atributos da entidade devem ser públicos
   - os atributos devem ser acessados com métodos get/set
   - possível criar métodos estáticos personalizados que executam consultas especifícas
 
 > pasta: src/main/resources = pode-se criar o arquivo import.sql com instruções sql para popular ou criar o banco de dados
 
-  ** ex pag 57 e 68
+\*\* ex pag 57 e 68
 
+## ConfigSource
 
+O Quarkus usa a especificação MicroProfile Config para ajudar você a evitar o uso de valores codificados. Isto permite a configuração dinâmica de aplicativos, sem fazer alterações no próprio aplicativo. Isso facilita a execução do aplicativo em vários ambientes, o que pode incluir desenvolvimento, teste e produção.
 
----
+Para facilitar a criação de arquivos de configuração, o MicroProfile usa o conceito de um ConfigSource.
 
+Um ConfigSource é uma fonte para valores configurados, que podem vir de:
+System Properties, Environment Variables ou um arquivo de configuração. Cada aplicativo pode ter várias fontes de configuração, que podem coexistir ao mesmo tempo, tendo diferentes prioridades.
+
+Depois que os valores de configuração forem definidos, a segunda parte do uso da configuração é injetá-la em seu código. Isso é feito usando a anotação <b>@ConfigProperty</b>.
+
+No Quarkus, você também pode usar a anotação @ConfigProperties como alternativa, que é menos detalhada.
+
+Ex. application.properties
+
+```
+format=One format for %s unit.
+unit=meter
+debug-flag=true # We can omit this value.
+```
+
+Para ler as configurações acima:
+
+```
+...
+@Path("/example")
+public class ExampleResource {
+  @ConfigProperty(name = "format")
+  public String format;
+
+  @ConfigProperty(name = "debug-flag", defaultValue="false")
+  public boolean debugFlag;
+
+  @ConfigProperty(name = "unit")
+  public Optional<String> unit;
+```
+
+### Usando @ConfigProperties
+
+O exemplo acima pode ser refatorado para usar a anotação <b>@ConfigProperties</b>.
+Primeiro, você deve adicionar um prefixo example aos nomes de seus valores de configuração em application.properties, assim:
+
+```
+example.format=One format for %s unit.
+example.unit=meter
+example.debug-flag=true
+```
+
+Para ler as configurações:
+
+```
+@ConfigProperties(prefix = "example")
+public class ExampleConfiguration {
+    private String format;
+    private boolean debugFlag = false;
+    private Optional<String> unit
+```
+
+> a variável debug-flag terá seu hífen traduzido para definir a letra a seguir em maiúscula, mapeando-a para debugFlag
+
+Um estilo alternativo ainda mais curto é criar uma interface em vez de uma classe.
+
+```
+@ConfigProperties(prefix = "example")
+public interface ExampleConfiguration {
+    String getFormat();
+
+    @ConfigProperty(defaultValue = "false")
+    boolean getDebugFlag();
+
+    Optional<String> getUnit();
+}
+```
+
+> Você ainda precisa da anotação @ConfigProperty para getDebugFlag() para definir um defaultValue, mas os outros dois getters serão injetados automaticamente. Essa interface se comportará exatamente da mesma forma que a classe acima.
+
+```
+@Path("/example")
+public class ExampleResource {
+
+    @Inject
+    ExampleConfiguration config;
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getEndpoint() {
+      if (config.getDebugFlag()) {
+        System.out.println("The format is: " + config.getFormat());
+        System.out.println("The unit is: " + config.getUnit().orElse("Not
+          specified"));
+    }
+}
+```
+
+## Perfis de Configuração
+
+Por padrão, você tem os seguintes perfis de configuração padrão disponíveis:
+
+- dev > Ativado ao executar o aplicativo no modo de desenvolvimento.
+- test > Ativado ao executar os testes.
+- prod > O perfil padrão.
+
+As propriedades sem perfil anterior estarão disponíveis para todos os perfis, a menos que sejam substituídas por outro valor na configuração do perfil atual.
+
+Ex. application-properties
+
+```
+example.user.username=student
+example.user.email= student@redhat.com
+%test.example.user.username=teststudent
+%test.example.user.email= student@testing.com
+%dev.example.user.username=devstudent
+```
+
+### Perfis Personalizados
+
+Você pode criar seus próprios perfis personalizados para personalizar ainda mais seus requisitos de configuração. Você só precisa adicionar um prefixo correspondente na configuração.
+
+Por exemplo, para um perfil com o nome experiment, o prefixo é %experiment. Ao executar o aplicativo, você deve passar a propriedade de sistema quarkus.profile ou a variável de ambiente QUARKUS_PROFILE e defini-la como experiment.
+Os seguintes exemplos são equivalentes:
+
+```
+  [user@host ~]$ mvn package -Dquarkus.profile=experiment
+  [user@host ~]$ QUARKUS_PROFILE=experiment mvn package
+```
+
+### Fontes de Configuração e Prioridades
+
+![imagem](fontes_config.png)
+
+O diagrama mostra algumas das diferentes fontes de configuração que podem ser usadas para definir variáveis. A prioridade aumenta de baixo para cima
+
+### Arquivo de ambiente
+
+Essa opção inclui um arquivo chamado .env no diretório raiz do aplicativo. As principais diferenças de application.properties são a sintaxe e uma prioridade mais alta.
+
+- Todos os caracteres devem estar em maiúsculas.
+- Em vez de usar um ponto (.) para indicar o acesso, os arquivos de ambiente usam sublinhados (\_).
+- Em vez de um hífen (-), um sublinhado substitui maiúsculas e minúsculas no código Java.
+- Em vez de um sinal de porcentagem (%), um prefixo de sublinhado indica um perfil.
+
+```
+_DEV_EXAMPLE_USER_USERNAME=devstudentfromenv
+EXAMPLE_DEBUG_FLAG=false
+```
+
+### Variáveis de ambiente
+
+Para obter o mesmo efeito que o arquivo de ambiente, você precisa preceder as variáveis de ambiente para executar o aplicativo. No entanto, isso também é executado em uma prioridade mais alta.
+
+Você também tem a possibilidade de exportar as variáveis antes de executar o comando, como no exemplo a seguir:
+
+```
+  $ _DEV_EXAMPLE_USER_USERNAME=devstudentfromenv \
+  EXAMPLE_DEBUG_FLAG=false \
+  mvn compile quarkus:dev
+```
+
+### Propriedades do sistema Java
+
+System Properties tem a prioridade mais alta de todas as fontes de configuração padrão. Sua sintaxe é semelhante à do arquivo application.properties, mas são fornecidas ao aplicativo como um parâmetro na execução.
+
+```
+@Path("/hello")
+public class GreetingResource {
+
+    @ConfigProperty(name = "senha")
+    private String senha;
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String hello() {
+        return "Hello RESTEasy = " + senha;
+    }
+}
+```
+
+A propriedade senha será passada via linha de comando como um parâmetro na execução:
+
+> mvn quarkus:dev -Dsenha=1234
+
+## pag 137
