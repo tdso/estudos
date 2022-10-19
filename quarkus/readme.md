@@ -41,7 +41,110 @@ Design para Falhas
   - Quando um aplicativo faz uma solicitação de conexão com um componente atrás do bulkhead, este verifica a disponibilidade de conexão com o componente solicitado, se o número de conexão estiver abaixo do limite, o bulkhead aloca a conexão, quando não são permitidas mais conexões simultâneas, o bulkead aguarda um intervalo de tempo definido, se nenhuma conexão ficar disponível dentro do período, o bulkhead rejeita a chamada.
   - Exs implementações: microprofile fault tolerance, hystrix, mesh, camel EIP, Disjuntor Apache Commons
 
-### Microprofile
+## Implementações Tolerância a Falhas
+
+- Quando um serviço depende de outro aplicativo, use uma estrutura de tolerância a falhas confiável para garantir que o microsserviço não sucumba a nenhuma falha de downstream.
+- A implementação da política de tolerância a falhas no Quarkus usa <b>SmallRye Fault Tolerance</b>. SmallRye FaultTolerance é uma implementação da especificação MicroProfile Fault Tolerance.
+- Essa especificação usa várias estratégias para minimizar os efeitos de falhas de dependência, implementando um conjunto de procedimentos de recuperação para microsserviços. Os procedimentos de recuperação definidos pela especificação de tolerância a falhas incluem o seguinte:
+  - <b>Disjuntor (@org.eclipse.microprofile.faulttolerance.CircuitBreaker)</b> Compatível com uma abordagem fail fast se o sistema estiver sofrendo de uma sobrecarga ou estiver indisponível.
+  - <b>Bulkhead (@org.eclipse.microprofile.faulttolerance.Bulkhead)</b> Limita a carga de trabalho de um microsserviço para evitar falhas causadas por simultaneidade ou sobrecarga de serviço.
+  - <b>Fallback(@org.eclipse.microprofile.faulttolerance.Fallback)</b> Executa um método alternativo se a execução falhar para o método anotado.
+  - <b>Repita a política (@org.eclipse.microprofile.faulttolerance.Retry)</b> Define as condições para uma repetição de execução com falha.
+  - <b>Tempo-limite (@org.eclipse.microprofile.faulttolerance.Timeout)</b> Define o tempo máximo de execução antes de interromper uma solicitação.
+
+### Casos de Uso
+
+- Tempo Limite - Timeout
+
+  A anotação <b>org.eclipse.microprofile.faulttolerance.Timeout</b> aplica-se a um método de ponto de extremidade e limita a quantidade de tempo que o método leva para gerar uma resposta. Se nenhuma resposta estiver disponível dentro do período, a estrutura interrompe a invocação do método de ponto de extremidade, gerando uma exceção TimeoutException.
+  A anotação Timeout aceita dois parâmetros: value indica a quantidade de tempo e unit define a unidade de tempo usada. - O exemplo a seguir instrui a estrutura a interromper o método getProduct se ele não responder em menos de 200 segundos:
+
+```
+  @Timeout(value=200,unit = ChronoUnit.SECONDS )
+  public Product getProduct(int id) {
+  ...output omitted...
+```
+
+- Repeat
+
+  A política Retry instrui a estrutura a repetir uma solicitação para um serviço se ela gerar uma exceção. Para ativar a política Retry em um método de ponto de extremidade, anote esse método com <b> org.eclipse.microprofile.faulttolerance.Retry </b> e forneça essa anotação com as opções apropriadas. Essas opções incluem o número máximo de repetições ou uma lista de situações que podem causar a repetição.
+  O exemplo a seguir repete o método getProduct até 90 vezes, por no máximo 100 segundos, e somente enquanto o método gera exceções ou descendentes RuntimeException.
+
+  ```
+  @Retry(maxRetries=90, maxDuration=100, retryOn=RuntimeException.class})
+  public Product getProduct(int id) {
+    ...output omitted...
+  }
+  ```
+
+- Fallback
+
+  Os serviços ainda podem falhar mesmo ao usar um tempo-limite ou repetir solicitações. Nesses casos, se o retorno de uma resposta significativa for obrigatório, o serviço deverá criar uma resposta mais simples ou predefinida.O padrão Fallback permite que o desenvolvedor defina um método alternativo que a estrutura pode usar se o método do ponto de extremidade original não responder. O Quarkus usa a anotação org.eclipse.microprofile.faulttolerance.Fallback para definir esse método ou classe alternativo. Se a anotação de Fallback definir um método, esse método deve ter exatamente a mesma assinatura que o método original e deve ser acessível a partir da classe original.
+
+  ```
+  @Fallback(fallbackMethod="getCachedProduct")
+  public Product getProduct(int id) {
+    ...output omitted...
+  }
+  ...output omitted...
+  public Product getCachedProduct(int id) {
+    ...output omitted...
+  }
+  ```
+
+  Se a anotação Fallback definir uma classe, essa classe deverá implementar um método da forma String handle(ExecutionContext context). Esse método deve ser acessível a partir da classe original.
+
+- Circuit Break
+
+  O padrão Circuit Breaker evita solicitações para um serviço temporário com falha ou degradado, explorando a afinidade temporal de alguns problemas. Ele explora a alta probabilidade de que uma falha de solicitação indica que as solicitações a seguir também falharão. A detecção rápida e segura de um serviço com falha é o tópico mais complexo da política Circuit Breaker.
+  Para detectar um serviço com falha, o padrão Circuit Breaker usa uma janela de solicitação, que é um conjunto de solicitações consecutivas. Se o número de solicitações com falha dentro dessa janela estiver abaixo de um limite, a estrutura considera o serviço com defeito e abre o circuito.
+
+  ```
+  @org.eclipse.microprofile.faulttolerance.CircuitBreaker(requestVolumeThreshold = 4,
+   failureRatio = 0.5, delay = 1000)
+  public List<String> getProducts() {
+    ...output omitted...
+  }
+  ```
+
+  No código anterior, o circuito é aberto se metade das solicitações (failureRatio = 0.5) de quatro invocações consecutivas (requestVolumeThreshold=4) falharem. O circuito permanece aberto por 1.000 milissegundos e depois fica half-open. Após uma invocação bem-sucedida, o circuito é fechado novamente.
+
+- Bulkhead
+
+  Impedimento de saturação do serviço com o padrão Bulkhead. O padrão Bulkhead impede que um serviço funcione incorretamente devido à saturação. É comum encontrar serviços que se tornam não confiáveis ao receber muitas solicitações simultâneas. O padrão Bulkhead limita o número de solicitações simultâneas e faz com que solicitações além desse número sofram falha. Para habilitar o padrão Bulkhead, adicione a anotação <b>org.eclipse.microprofile.faulttolerance.Bulkhead</b> ao método de ponto de extremidade. Em seguida, indique o número máximo de solicitações simultâneas permitidas e o tamanho da fila de espera.
+
+  ```
+  @Bulkhead(value = 5, waitingTaskQueue = 8)
+  public List getProducts() {
+  ...output omitted...
+  ```
+
+  No exemplo anterior, as estruturas permitem apenas cinco invocações simultâneas do método getProducts(). Se você chamar o método com mais chamadas simultâneas, o bulkhead enfileira até oito solicitações pendentes. Depois que a fila é preenchida, solicitações adicionais acionam a implementação de tolerância a falhas para gerar uma exceção BulkheadException.
+
+As políticas são aplicadas na seguinte ordem:
+
+1. Se o circuito estiver aberto, a política Circuit Breaker gerará uma exceção.
+2. Se o Bulkhead e sua fila estiverem cheios, ele gerará uma exceção.
+3. Se nenhuma das etapas anteriores gerar uma exceção, a estrutura chamará o método de
+   ponto de extremidade original.
+4. A política Timeout interrompe a solicitação se ela demorar muito.
+5. A política Retry repete a solicitação.
+6. O método Fallback retorna a resposta de atalho se algum dos passos anteriores gerar uma
+   exceção.
+
+> O MicroProfile Fault Tolerance integra-se perfeitamente às especificações MicroProfile Configuration e MicroProfile Metrics.Por exemplo, a anotação Fallback gera uma métrica ft.<name>.fallback.calls.total, em que <name> é o FQN do método original. Essa métrica conta o número de vezes que o método de fallback responde. Para obter a lista completa de métricas e seus significados, consulte a especificação MicroProfile Fault Tolerance.
+
+### Microprofile Health: Readiness e Liveness
+
+A especificação MicroProfile Health permite que os serviços notifiquem o mecanismo de
+orquestração do ciclo de vida de seu status atual, o que permite que o sistema aja de acordo. Isso
+é feito usando dois pontos de extremidade dedicados: /q/health/ready e /q/health/live.
+
+A verificação de integridade liveness verifica se os serviços estão em um status íntegro: o aplicativo não encontrou um erro irrecuperável. Exemplos disso podem ser um erro de memória ou um deadlock no código.
+
+A verificação de integridade de readiness informa quando os serviços estão prontos para atender a solicitações. Essa verificação deve levar em consideração qualquer serviço externo necessário para a funcionalidade adequada do serviço. Exemplos dessa verificação incluem aguardar que um banco de dados ou serviços externos se tornem disponíveis.
+
+## Microprofile
 
 - Especificação Microprofile define um plataforma que otimiza o java para uma arquitetura baseada em microserviços e fornece portabilidade em vários tempos de execução.
 
@@ -298,4 +401,73 @@ A propriedade senha será passada via linha de comando como um parâmetro na exe
 
 > mvn quarkus:dev -Dsenha=1234
 
-## pag 137
+## Ativando um cliente REST
+
+A extensão <b>quarkus-rest-client</b> usa RESTEasy como a implementação para a especificação MicroProfile Rest Client usando a anotação RegisterRestClient em uma interface. Use o cliente REST gerado injetando com as anotações Inject e RestClient.
+
+Do lado do cliente definimos uma interface e anotamos com org.eclipse.microprofile.rest.client.inject.RegisterRestClient. A classe da API também precisa usar javax.ws.rs.Path para declarar o caminho relativo no servidor.
+
+```
+@Path("/relative_path") // a path da outra application
+@RegisterRestClient
+public interface MyServiceAPI {
+  @GET
+  @Path("{endpoint}") // caminho do servico que será acessado
+  @Produces(MediaType.TEXT_PLAIN)
+  String endpointMethod(@PathParam("paramName") String param);
+}
+```
+
+Para usar o cliente acima, não precisamos escrever nenhum código já que o Quarkus gera o código do cliente Rest na compilação. Precisamos apenas criar um atributo na classe em que será usado e anotá-lo com javax.inject.Inject e org.eclipse.microprofile.rest.client.inject.RestClient .
+
+```
+@ApplicationScoped // or @Path, or any other annotation that defines a CDI bean.
+public class SomeBean {
+  @Inject
+  @RestClient
+  MyServiceAPI myServiceClient
+  ...
+```
+
+> O Arc precisa gerenciar a classe onde ele injeta o cliente restante. Como o Quarkus trata todos os recursos JAX-RS como beans CDI, anotar a classe com javax.ws.rs.Path o habilita como um bean CDI e permite a injeção de cliente.
+> O Quarkus transforma chamadas para métodos locais dessa instância em chamadas HTTP REST.
+
+```
+@ApplicationScoped // or @Path, or any other annotation that defines a CDI bean.
+public class SomeBean {
+@Inject
+@RestClient
+MyServiceAPI myServiceClient
+  ...output omitted...
+  <b>myServiceClient.endpointMethod(param);</b>
+}
+```
+
+### Configuração do cliente REST
+
+A configuração dos clientes REST gerados é centralizada no arquivo application.properties. A única entrada obrigatória para que os clientes possam ser usados é a URL do serviço de destino. Para compor o nome da propriedade, preceda a palavra-chave /mp-rest/url com o FQN (nome totalmente qualificado) da classe de interface da API.
+
+> com.mycompany.MyServiceAPI/mp-rest/url=http://HOST:PORT
+> Assim como qualquer outra propriedade da configuração do Quarkus, essa propriedade aceita prefixos de perfil.
+
+> %dev.com.mycompany.MyServiceAPI/mp-rest/url=http://HOST:PORT
+
+Ao desenvolver aplicativos Quarkus, a abordagem comum é usar a descoberta de serviço do OpenShift Container Platform no perfil de configuração %prod, sempre usando localhost para o perfil %dev. Essa abordagem normalmente requer o uso de portas diferentes para microsserviços diferentes ao testar localmente.
+
+```
+%dev.quarkus.http.port=8085
+%prod.quarkus.http.port=8080
+%prod.com.mycompany.MyServiceAPI.AdderService/mp-rest/url=http://adder:8080
+%dev.com.mycompany.MyServiceAPI.AdderService/mp-rest/url=http://localhost:8084
+```
+
+- No perfil de produção, descubra outros serviços apenas pelo nome do serviço.
+- No perfil de desenvolvimento, outros serviços são executados em localhost em portas dedicadas para evitar conflitos entre os serviços.
+  > Use a entrada quarkus.http.port no arquivo application.properties para atribuir a porta e op nome do serviço.
+
+```
+quarkus.application.name=adder
+%dev.quarkus.http.port=8081
+```
+
+p215
