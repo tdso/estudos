@@ -470,4 +470,117 @@ quarkus.application.name=adder
 %dev.quarkus.http.port=8081
 ```
 
-p215
+## Teste de microserviços
+
+- Usa a extensão quarkus-junit5
+- Para criar um teste:
+  - Criar uma classe de teste e adicionar a anotação io.quarkus.test.junit.QuarkusTest
+    à classe. Seguindo a convenção de estrutura de pastas do Maven, as classes de teste devem
+    ser colocadas na pasta /src/test/java.
+  - Anote cada método de teste com org.junit.jupiter.api.Test para indicar quais métodos a estrutura deve executar.
+
+### Ativar o perfil de teste
+
+- Os testes geralmente são executados em um ambiente que não seja de produção, portanto, eles
+  precisam de sua própria configuração. Além disso, os componentes a serem testados precisam de sua própria configuração no ambiente de teste.
+- No Quarkus, essas configurações dedicadas são empacotadas em um perfil de configuração chamado test. Esse perfil é ativado automaticamente quando o Quarkus executa o aplicativo no
+  modo de teste. Ex.
+
+```
+quarkus.datasource.db-kind=postgresql
+%test.quarkus.datasource.db-kind=h2
+```
+
+> Quando o perfil prod, dev ou qualquer outro perfil que não seja test estiver ativo, o aplicativo usará um banco de dados PostgreSQL. Quando o perfil test estiver ativo, o aplicativo usará um banco de dados H2.
+
+- O script SQL de inicialização do Hibernate não tem valor padrão para o perfil prod, mas usa import-dev.sql e import-test.sql para os perfis dev e test, respectivamente. O trecho a seguir descreve valores de exemplo para a entrada de configuração quarkus.hibernate-orm.sql-load-script de cada perfil.
+
+```
+%dev.quarkus.hibernate-orm.sql-load-script = import-dev.sql
+%test.quarkus.hibernate-orm.sql-load-script = import-test.sql
+%prod.quarkus.hibernate-orm.sql-load-script = no-file
+```
+
+### Inclusão novos recursos
+
+- Como as classes de teste do Quarkus são beans gerenciados, o Arc pode injetar qualquer bean na classe de teste, facilitando a interação da classe de teste com o aplicativo.
+
+```
+@QuarkusTest
+public class MyTestClass {
+  @Inject MyService myService;
+  @Test
+  public void testMyService() {
+    Assertions.assertTrue(myService.isWorking());
+  }
+}
+```
+
+### REST-assured
+
+- REST-assured é uma biblioteca que facilita o teste de microsserviços REST e é totalmente integrada ao Quarkus.
+- O REST-assured usa a notação Given-When-Then para declarar o teste e os correspondentes
+  de Hamcrest para validar os resultados. O exemplo a seguir é equivalente ao anterior, mas usando recursos REST-assured.
+
+```
+@QuarkusTest
+public class MyTestClass {
+  @TestHTTPEndpoint(MyService.class)
+  @TestHTTPResource URL endpoint;
+  @Test
+  public void testMyServiceEndPoint() {
+    given().when().get(endpoint).then().body(is("hello"));
+  }
+
+  @TestHTTPResource("index.html") URL resource;
+  @Test
+  public void testResource() {
+    given().when().get(resource).then().body(is("Static resource"));
+  }
+}
+```
+
+Diferentemente dos exemplos anteriores, os conjuntos de teste geralmente validam os pontos de
+extremidade para uma única classe de recurso. Você pode usar a anotação TestHTTPEndpoint na classe de teste para definir a classe de recurso padrão a ser testada.
+
+```
+@QuarkusTest
+@TestHTTPEndpoint(MyService.class)
+public class MyTestClass {
+  @Test
+  public void testMyServiceEndPoint() {
+    given()
+    .when().get() // no endpoint here!
+    .then().body(is("hello"));
+  }
+}
+```
+
+### Teste de aplicativos nativos
+
+- Testar um aplicativo nativo gerado com o Quarkus é diferente de testar um aplicativo JVM. A
+  principal diferença é que o aplicativo não é mais controlado por Java, mas funciona como um aplicativo completamente independente. Isso significa que o Quarkus só pode testar a API do aplicativo e os recursos expostos, não os componentes internos do aplicativo.
+
+- Em seguida, você deve criar uma classe de teste dedicada para testes nativos. Adicione a anotação io.quarkus.test.junit.NativeImageTest à classe para indicar a execução dos testes no perfil nativo. Na maioria dos casos, os testes nativos são exatamente os mesmos testes JVM, portanto, a classe de teste nativa pode apenas estender a classe de teste JVM para incluir o mesmo conjunto de testes.
+
+```
+@NativeImageTest
+public class MyServiceTestNativeIT extends MyServiceTest {
+// Execute the same tests but in native mode.
+}
+```
+
+- Para executar os testes nativos, use o comando mvn test -Pnative. A opção test indica que
+  o Maven deve executar o teste sem tentar criar o aplicativo novamente, pois já empacotamos o aplicativo na etapa anterior.
+
+> Fornecimento de dependência temporária : anotação io.quarkus.test.common.QuarkusTestResource - usar essa anotação em um conjunto de testes e fornecer uma classe de recurso, o Quarkus lidará com o ciclo de vida do recurso para você. O exemplo a seguir cria um banco de dados na memória disponível para o aplicativo durante a execução do conjunto de testes.
+
+```
+...output omitted...
+@QuarkusTest
+@QuarkusTestResource(H2DatabaseTestResource.class)
+public class MyServiceTest {
+...output omitted..
+```
+
+p. 247
