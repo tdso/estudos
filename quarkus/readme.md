@@ -583,4 +583,143 @@ public class MyServiceTest {
 ...output omitted..
 ```
 
-p. 247
+### Testes com simulações
+
+- O objetivo disso é ser capaz de validar cada unidade independente de outras unidades, tanto
+  quanto possível. Simulações são uma ferramenta que auxilia nos testes de unidade, facilitando o isolamento de um componente de suas dependências.
+
+- Simulações são objetos falsos de classes, das quais o componente a ser testado é dependente. Eles devem conter apenas a lógica básica que existe com o único propósito de habilitar os testes para os quais foram criados.
+
+- o Quarkus usa a especificação MicroProfile e reúne as anotações mencionadas anteriormente, criando a anotação @io.quarkus.test.Mock.
+
+- Usar essa anotação com uma classe que estende a classe a ser simulada permite que você use o Quarkus DI para manipular a injeção do bean como parte das dependências, substituindo a implementação original pela simulada. Isso ajuda a isolar os testes de unidade para a unidade que você deseja testar.
+
+- Para simular objetos por esse método, você deve criar uma classe no subdiretório test, encontrado em src/test/java. A classe deve ser anotada com @Mock e a interface compartilhada com a classe que você deseja simular. Em seguida, crie os métodos necessários na classe de simulação, que pode ter uma implementação personalizada que atende às intenções dos testes.
+  Ex:
+
+```
+@Mock
+@ApplicationScoped
+public class DataStoreMock extends DataStore {
+  @Override
+  public Data retrieve(UUID uuid) {
+    return new Data(uuid, "name", 123);
+  }
+}
+// a classe acima agora pode ser injetada em seus testes.
+...output omitted...
+@QuarkusTest
+public class SomeServiceTest {
+  @Inject
+  DataStore dataStore;
+  public void testExample() {
+    UUID uuid = ...output omitted...
+    Data data = dataStore.retrieve(uuid);
+    ...output omitted...
+  }
+}
+```
+
+> O Quarkus DI encontrará a simulação e a usará para a injeção. O método chamado aqui será o método de recuperação da simulação, que tem lógica mínima e comportamento previsível para o teste.
+
+### Uso do Mockito
+
+- A anotação @Mock é simples de usar, mas se muitos testes exigirem simulações diferentes para o mesmo bean, a abordagem pode se tornar difícil de manter. Uma solução para isso é criar simulações durante o tempo de execução, usando Mockito.
+
+- Mockito é uma estrutura de simulação usada para desenvolver testes de unidade. Os principais objetivos do Mockito incluem a habilitação de testes que são legíveis, têm erros de verificação limpa quando eles falham e fornecem uma API mínima para a criação de stubs e verificações. Para usá-lo no Quarkus, você adiciona a extensão quarkus-junit5-mockito em seu arquivo pom.xml.
+
+- A classe de entrada é org.mockito.Mockito, que contém vários métodos estáticos que
+  simplificam a simulação de classes.
+
+- Para criar uma simulação, você usa o método Mockito.mock(), passando a classe correspondente como um parâmetro. Esse método cria dinamicamente uma classe em tempo real e cria uma instância da classe, que está ciente dos métodos da classe que está sendo simulada.
+
+- O Mockito usa uma estrutura when e then para criar stubs de método. Primeiro, é usado o método Mockito.when(), que recebe como parâmetro uma interação com o objeto simulado. Essa interação pode chamar um método da instância do objeto de simulação, incluindo os parâmetros que serão passados para a chamada do método. Depois que a interação when() é definida, o Mockito habilita várias consequências para a interação usando os métodos thenReturn(), thenThrow(), thenAnswer() e thenCallRealMethod().
+
+```
+...output omitted...
+@QuarkusTest
+public class SomeServiceTest {
+  public void testExample() {
+    UUID uuid = ...output omitted...
+    DataStore dataStore = Mockito.mock(DataStore.class);
+    Mockito.when(dataStore.retrieve(uuid))
+      .thenReturn(new Data(uuid, "name", 123));
+    Mockito.when(dataStore.retrieve(null))
+      .thenThrow(new NullPointerException());
+    Data data = dataStore.retrieve(uuid);
+    Data data = dataStore.retrieve(null);
+}
+...output omitted...
+```
+
+- Para qualquer chamada de método para a qual não há uma definição de stub, o Mockito
+  retornará um valor padrão. Esse pode ser false para o tipo boolean, null para objetos gerais,
+  uma String vazia, 0 para inteiros e coleções vazias.
+- Também há casos em que você pode preferir especificar o comportamento de stub para valores
+  de parâmetro mais amplos. Para isso, o Mockito fornece o conceito de argument matchers.
+- Entre a longa lista de correspondentes de argumento fornecidas pelo Mockito estão anyString, anyList, anyIterable, anyInt, anyCollectionOf e any. O correspondente de argumento any é especial, pois corresponderá a qualquer parâmetro, independentemente do valor..
+
+```
+...output omitted...
+public void testExample() {
+  UUID uuid = ...output omitted...
+  DataStore dataStore = Mockito.mock(DataStore.class);
+  Mockito.when(dataStore.retrieve(Mockito.any()))
+    .thenReturn(new Data(uuid, "name", 123));
+  Data data = dataStore.retrieve(uuid);
+}
+...output omitted...
+```
+
+Sempre que houver uma chamada para o método retrieve(), esse stub será chamado, independentemente do valor do parâmetro.
+
+### Atalho com @InjectMock
+
+- Você também pode usar a anotação @io.quarkus.test.junit.mockito.InjectMock para
+  usar o Quarkus DI para injetar simulações criadas com o Mockito. A anotação @InjectMock
+  permite a criação de mocks que usam Quarkus DI para injetá-los como dependências, com
+  controle sobre as configurações para toda a classe de teste e para cada caso de teste.
+
+```
+...output omitted...
+@QuarkusTest
+public class SomeServiceTest {
+  @InjectMock
+  DataStore dataStore;
+  @BeforeEach
+  public void setup() {
+    Mockito.when(dataStore.retrieve(null)).thenThrow(new
+      NullPointerException());
+  }
+  public void testExample() {
+    UUID uuid = ...output omitted...
+    Mockito.when(dataStore.retrieve(Mockito.any()))
+      .thenReturn(new Data(uuid, "name", 123));
+    Data data = dataStore.retrieve(uuid);
+    ...output omitted...
+  }
+}
+```
+
+- A anotação <b>@InjectMock</b> indica ao Quarkus DI para criar um objeto de simulação usando Mockito.
+- Esse stub estará disponível para todos os casos de teste dentro da classe SomeServiceTest. O objeto dataStore se comporta da mesma forma que no último exemplo. Essa configuração está disponível apenas no teste testExample().
+
+### PanacheMock para simular ActiveRecords
+
+- Mockito recentemente adicionou suporte para métodos estáticos de simulação. No entanto, o
+  de uso io.quarkus.panache.mock.PanacheMock continua sendo a maneira mais simples de simular classes do Panache e seus métodos estáticos.
+- Você deve adicionar a extensão <b>quarkus-panache-mock</b> ao seu arquivo pom.xml para habilitar usando PanacheMock. Depois de adicionar a extensão, o uso da classe é simples. Em vez de usar Mockito.mock() conforme descrito anteriormente, use PanacheMock.mock(). Você pode criar stubs para a classe simulada usando Mockito como faria normalmente ao criar com Mockito.mock(). As chamadas feitas por outras classes para os métodos da entidade simulada, usadas dentro do teste, agora usarão o stub criado.
+
+```
+...output omitted...
+public void testExample() {
+  PanacheMock.mock(Data.class);
+  Mockito.when(Data.find("name", "Joseph"))
+    .thenReturn(new Data(UUID.randomUUID(), "Joseph", 123));
+  Data data = Data.find("name", "Joseph");
+  Assertions.assertEquals("Joseph", data.name);
+}
+...output omitted...
+```
+
+p. 269
