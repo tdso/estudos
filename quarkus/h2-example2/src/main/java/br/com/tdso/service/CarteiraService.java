@@ -1,6 +1,5 @@
 package br.com.tdso.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import javax.enterprise.context.RequestScoped;
 import javax.persistence.EntityManager;
@@ -25,7 +24,7 @@ public class CarteiraService {
     }
 
     @Transactional
-    public Carteira postCarteira(Carteira c) {
+    public Carteira putCarteira(Carteira c) {
         String query = "getCarteiraById";
         TypedQuery<Carteira> retorno = em.createNamedQuery(query, Carteira.class);
         retorno.setParameter(1, c.getIdCarteira());
@@ -35,7 +34,7 @@ public class CarteiraService {
             return new Carteira();
         } else {
             query = "persist";
-            Query query_update = em.createNamedQuery(query);
+            Query query_update = em.createNativeQuery(query);
             query_update.setParameter(1, c.getMesCarteira());
             query_update.setParameter(2, c.getAnoCarteira());
             query_update.setParameter(3, c.getNomeCarteira());
@@ -44,6 +43,12 @@ public class CarteiraService {
             return carteiraRetorno;
         }
 
+    }
+
+    @Transactional
+    public Carteira postCarteira(Carteira c) {
+        em.persist(c);
+        return c;
     }
 
 

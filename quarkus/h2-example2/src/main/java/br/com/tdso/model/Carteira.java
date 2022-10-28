@@ -33,8 +33,8 @@ public class Carteira {
     @NotBlank(message = "informe o nome da carteira - nao deixe em branco")
     @NotNull(message = "informe o nome da carteira - nao pode ser nulo")
     private String nomeCarteira;
-    // private Date dataAtualizacao;
-    // private Date dataVingencia;
+    private Date dataAtualizacao;
+    private Date dataVingencia;
 
     public Carteira() {}
 
@@ -69,16 +69,23 @@ public class Carteira {
     public void setNomeCarteira(String nomeCarteira) {
         this.nomeCarteira = nomeCarteira;
     }
-    /*
-     * public Date getDataAtualizacao() { return dataAtualizacao; }
-     * 
-     * public void setDataAtualizacao(Date dataAtualizacao) { this.dataAtualizacao =
-     * dataAtualizacao; }
-     * 
-     * public Date getDataVingencia() { return dataVingencia; }
-     * 
-     * public void setDataVingencia(Date dataVingencia) { this.dataVingencia = dataVingencia; }
-     * 
-     */
+
+    public Date getDataAtualizacao() {
+        return dataAtualizacao;
+    }
+
+    public void setDataAtualizacao(Date dataAtualizacao) {
+        this.dataAtualizacao =
+                dataAtualizacao;
+    }
+
+    public Date getDataVingencia() {
+        return dataVingencia;
+    }
+
+    public void setDataVingencia(Date dataVingencia) {
+        this.dataVingencia = dataVingencia;
+    }
+
 
 }

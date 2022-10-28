@@ -9,8 +9,10 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @Path("/hello")
 public class GreetingResource {
 
-    @ConfigProperty(name = "senha")
-    private String senha;
+    // passado cmo parametro no momento da execucao
+    // mvn quarkus:dev -Dsenha=1234
+    // @ConfigProperty(name = "senha")
+    private String senha = "";
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
