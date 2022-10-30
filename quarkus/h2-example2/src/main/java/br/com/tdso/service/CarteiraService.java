@@ -3,6 +3,7 @@ package br.com.tdso.service;
 import java.util.List;
 import javax.enterprise.context.RequestScoped;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
@@ -18,9 +19,22 @@ public class CarteiraService {
     public List<Carteira> getCarteira() {
         String query = "getCarteira";
         TypedQuery<Carteira> retorno = em.createNamedQuery(query, Carteira.class);
-
         List<Carteira> ListCarteira = retorno.getResultList();
         return ListCarteira;
+    }
+
+    public Carteira getCarteiraById(Long id) {
+        String name_query = "getCarteiraById";
+        TypedQuery<Carteira> query = em.createNamedQuery(name_query, Carteira.class);
+        query.setParameter(1, id);
+        Carteira c = null;
+        try {
+            c = query.getSingleResult();
+        } catch (NoResultException e) {
+            // TODO: handle exception
+        }
+        
+        return c;
     }
 
     @Transactional
