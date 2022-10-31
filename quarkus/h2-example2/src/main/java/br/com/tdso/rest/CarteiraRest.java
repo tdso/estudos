@@ -36,24 +36,24 @@ public class CarteiraRest {
 
         return carteiraService.getCarteira();
     }
-    @GET
+
     @Path("/ext/{a}/{b}")
-    public Response getDivision(@PathParam("a") int a, @PathParam("b") int b){
+    @GET
+    public Response getDivision(@PathParam("a") int a, @PathParam("b") int b) {
         int c = a + b;
         System.out.println("Param c = " + c);
         System.out.println("Param a = " + a + " param b = " + b);
         return service2.getDivider(a, b);
     }
 
-    @GET
-    @Path("{id}")
-    public Response getCarteiraById (Long id){
-        Carteira c = carteiraService.getCarteiraById(id);
-        if (c == null) {
-            return Response.status(Status.BAD_REQUEST).entity("Carteira nao encontrada !").build();
-        }
-        return Response.status(Status.OK).entity(c).build();
-    }
+    /*
+     * @GET
+     * 
+     * @Path("{id}") public Response getCarteiraById(@PathParam("id") Long id) { Carteira c =
+     * carteiraService.getCarteiraById(id); if (c == null) { return
+     * Response.status(Status.BAD_REQUEST).entity("Carteira nao encontrada !").build(); } return
+     * Response.status(Status.OK).entity(c).build(); }
+     */
     @PUT
     public Carteira putCarteira(Carteira c) {
 

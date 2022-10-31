@@ -15,23 +15,24 @@ import javax.ws.rs.core.Response.Status;
 public class DividerRest {
 
   @GET
-  public String live(){
+  public String live() {
     return "ok";
   }
 
   @GET
   @Path("/div/{a}/{b}")
-  //public Response getDivider(@PathParam("a") int a , @PathParam("b") int b) {
-    public Response getDivider(@PathParam("a") int a , @PathParam("b") int b) {
+  // public Response getDivider(@PathParam("a") int a , @PathParam("b") int b) {
+  public Response getDivider(@PathParam("a") int a, @PathParam("b") int b) {
 
-      System.out.println(" ");
-      System.out.println("chegou aqui no outro MS");
 
-      if (a == 0 && b == 0) {
-        return Response.status(Status.BAD_REQUEST).entity("Divisao nao permitida !").build();
-      }
-      return Response.status(Status.OK).entity(a/b).build();
-    
+    System.out.println(" ");
+    System.out.println("chegou aqui no outro MS");
+
+    if (a == 0 && b == 0) {
+      return Response.status(Status.BAD_REQUEST).entity("Divisao nao permitida !").build();
+    }
+    return Response.status(Status.OK).entity(a / b).build();
+
   }
-  
+
 }
