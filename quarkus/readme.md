@@ -1,5 +1,19 @@
 # Notas Quarkus - Redhat
 
+## Consulta Rápida - comandos úteis
+
+- comando para compilar e executar via maven:
+  ./mvnw compile exec:java "-Dexec.mainClass=com.redhat.telemetry.ProducerApp"
+
+- comando para instalar dependência via maven:
+  ./mvnw quarkus:add-extension -Dextensions='hibernate-validator'
+
+- listas as dependências disponíveis
+  ./mvnw quarkus:list-extensions
+
+- Outras opções em:
+  https://quarkus.io/guides/maven-tooling
+
 ## Arquitetura Microserviços
 
 - Método de divisão de domínios da lógica de negócios em processos independentes, que se comunicam com outros processos pela rede. Cada serviço gira em torno de um domínio de negócio específico.
