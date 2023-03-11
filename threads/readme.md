@@ -9,6 +9,19 @@ O uso de threads é recomendado quando executamos pelo menos duas coisas ao mesm
 A JVM faz um mapeamento das threads java para as threads nativas do SO. A JVM funciona como uma abstração em cima do SO.
 ![imagem](threads_1.png)
 
+Revisão:
+
+- ter uma classe que:
+
+  - implementa Runnable;
+  - atributo para guardar um resultado, se for o caso;
+  - método publico para retornar o valor do atributo acima;
+
+- ter uma instância da classe Thread que receberá uma instância da classe que implementou o Runnable;
+- iniciar a execução da Thread através do método start();
+- a instância da Thread que foi startada tem que se juntar (método join) a thread que a chamou. Isso fará a thread principal (chamadora) esperar o término da execução da thread, isso é um método bloqueante.
+- por fim, quando o processamento retornar a Thread principal (após o método join)obtenha o resultado chamando o método público que retorna o valor do atributo que armazena a resposta.
+
 ### synchronized
 
 Usamos para sincronizar o acesso ao objeto. As threads executam o bloco synchronized bloqueando o objeto, de forma que somente 1 thread por vez acesse o objeto.
@@ -65,7 +78,8 @@ Podemos criar através da classe Thread, passando uma tarefa que implementa a in
   ExecutorService pool = Executors.newFixedThreadPool(4);
   pool.execute(task);
 
-Os métodos acima retornam um ExecutorService que possui o método execute() para chamar uma tarefa que implementa a interface Runnable e Callable (como verá mais adiante).
+O ExecutorService simplifica a execução de tarefas assíncronas, já que provê um pool de threads.
+Os métodos acima retornam um ExecutorService que possui o método execute() para chamar uma tarefa que implementa a interface Runnable (não retorna nada) e/ou Callable (retorna valor) (como verá mais adiante).
 
 ### Threads com Retorno
 
@@ -73,13 +87,43 @@ Interface Callable : permite devolver valor, e podemos definir um tempo limite d
 Para executar:
 
 - execute (interface Runnable)
-- submit (interface Callable)
+- submit (interface Callable) (pode submeter tanto Callable quanto Runnable)
 
 Callable retorna um objeto Future e para obter o resultado basta chamar o método get().
+
 Porém o método get() é bloqueante então caso não deseje bloquear a thread, recomenda-se que se crie outra thread para obter o resultado.
+
 Caso o Callable não atingiu o tempo especificado e não acabou a execução, uma exception será gerada e no catch devemos chamar o método cancel() para cancelar a execução.
 
+O ExecutorService não para sozinho ou é destruído, por iso temos que:
+
+- chamar o método **shutdown()** que não causa a destruição imediata do ExecutorService, o shutdown vai ocorrer quando todas as tarefas que estão rodando finalizar.
+- chamar o método **shutdownNow()** que destrói imediatamente o ExecutorService.
+
 Nota: FutureTask > permite rodar um Callable sem um pool de thread. FutureTask recebe no construtor um Callable, e implementa a interface Runnable, assim FutureTask é iniciada com o método start(), e obtemos o resultado com o método get(). FutureTask é um intermediário entre o Runnable e o Callable.
+
+### Interface Future
+
+- método submit() e invokeAll() retornam um objeto ou uma lista do tipo Future que permite-nos pegar o resultado da execução da tarefa ou checar o status da tarefa:
+  - podemos verificar se a tarefa já foi processada - isDone()
+  - pegar o resultado - get() (bloqueante)
+  - cancela a execução - cancel(true)
+
+### Interface ScheduledExecutorService
+
+- executar depois de um tempo predefinido/período - ex:
+
+```
+  ScheduledExecutorService executorService = Executors.newSingleThreadScheduleExecutor();
+  // para executar depois de um tempo fixo
+  Future<String> resp = executorService.schedule(callableTask, 1, TimeUnit.SECONDS);
+  // para rodar após 100 ms, e depois vai rodar a mesma tarefa a cada 450 ms
+  Future<String> resp = executorService.scheduleAtFixedRate(runnableTask, 100, 450, TimeUnit.SECONDS);
+```
+
+- se o processador precisar de mais tempo para executar a tarefa, o schedule vai esperar a tarefa corrente finalizar antes de iniciar.
+
+- se precisar ter um tempo fixo entre as execuções use: scheduleWithFixedDelay
 
 ### Fila com Threads
 
@@ -107,6 +151,22 @@ Em alguns casos precisaremos processar os comandos (as mensagens) na ordem em qu
 - BlockingQueue: PriorityBlockingQueue
 
 Para usarmos o PriorityBlockingQueue o tipo do objeto da fila tem que implementar a interface Comparable (se não uma exceção é lançada). E não precisamos definir o tamanho de um tipo PriorityBlockingQueue, tem alocação dinâmica.
+
+### ArrayBlockingQueue
+
+Forma de trabalhar com listas seguras - elimina-se a necessidade de trabalhar com bloqueio (synchronized ou ReentrantLock).
+
+O tipo de lista segura tem métodos especificos para trabalhar com transaction que são interrompidos caso o recurso (array) esteja bloqueado. Ex: peek() e take().
+
+**Atenção**: como vimos no exemplo (aula 305 - Tim) a Thread pode ser interrompida entre um comando e outro, ex:
+1 - verifica se a lista está vazia, não está e continua;
+2 - porém logo após a verificação a execução é interrompida, e passa para outra Thread;
+3 - essa segunda Thread faz a verificação e remove o item e agora a lista está vazia;
+4 - a primeira Thread retoma a execução, mas a lista está vazia, ela já passou pela verificação, então tentar acessar o elemento retornará um NullPointerException.
+
+**Solução**: sincronizar o bloco de instruções para garantir atomicidade.
+
+**Conclusão**: Mesmo utilizando listas seguras não podemos abrir mão do synchronized.
 
 ### Tratamento de Exceção na Thread
 
