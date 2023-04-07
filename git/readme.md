@@ -2,6 +2,8 @@
 
 - git remote -v     visualiza os repo´s remotos que estão configurados
 
+- git log origin/<nome_da_branch> visualiza os commits no remoto
+
 - Navegar Histórico
   git checkout <file>           visualiza como um arquivo estava
   git checkout <commit>   visualiza como todos os arquivos estavam
