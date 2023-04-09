@@ -8,7 +8,65 @@
   git checkout <file>           visualiza como um arquivo estava
   git checkout <commit>   visualiza como todos os arquivos estavam
 
-Situação 1
+## git checkout
+
+- permite não apenas mudar de branch mas, também, navegarmos entre os commits. O último commit de uma branch é referenciado como head.
+
+- podemos ir direto para um dado commit com > git checkout <numero_commit>
+  ou referenciar um commit N versões antes do head usando > git checkout head~2
+  nesse exemplo iriamos para o antepenúltimo commit.
+
+<b>Importante:</b> ao mudar para uma versão de commit e acidentalmente alterar algum arquivo podemos corrigir através dos seguintes comandos:
+
+- git reset (desfaz o git add)
+- git clean -df (limpar as modificações)
+- git checkout -- .
+  > não pode haver alterações no arquivos, se ocorrer tem que ser desfeitas amtes de voltarmos para o head. Se quiser alterar algo crie uma branch a partir deste ponto.
+
+## Dicas Rápidas
+
+- remover arquivos da área de stage (após o git add)
+  git status
+  git reset
+
+- desfazer modificações não salvas
+
+  - git status
+  - git reset
+  - git clean -df
+  - git checkout -- .
+
+- desfazer o último commit sem desfazer as modificações nos arquivos
+
+  - git status
+  - git reset --soft HEAD~1
+
+- deletar commits e também modificações nos arquivos - volta o projeto ao estado de um dado commit (ação destrutiva)
+
+  - git status
+  - git reset --hard <<id_commit>>
+  - ex: voltar o projeto ao estado do penúltimo commit:
+    git reset --hard HEAD~1
+
+- apontar o projeto para outro repositório remoto
+
+  - git remote set-url origin git@github.com:seuUsuario/seuRepositorio.git
+
+- configurando sua identifcação no git
+
+  - git config --global user.name "Seu nome"
+  - git config --global user.email "Seu email de cadastro do Github"
+  - git config --list
+
+- iniciando um projeto no github
+  - git init
+  - git add .
+  - git commit -m "Mensagem explicativa"
+  - git branch -M main
+  - git remote add origin git@github.com:seuusuario/seurepositorio.git
+  - git push -u origin main
+
+## Situação 1
 
 - se eu quiser fazer alteração a partir desse ponto, deste commit tenho
         que criar uma branch a partir deste ponto, deste commit.
