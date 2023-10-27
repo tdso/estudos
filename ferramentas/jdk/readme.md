@@ -9,5 +9,15 @@
 - mova a pasta descompactada para a pasta criada - ex: sudo mv jdk-11/\* /usr/lib/jvm/jdk-11
 
 - configurar o linux para setar a versão do java para rodar a partir da linha de comando:
-  - sudo update-alternatives --install "usr/bin/java" "java" "/usr/lib/jvm/jdk-11/bin/java" 1010
+
+  - sudo update-alternatives --install "/usr/bin/java" "java" "/usr/lib/jvm/jdk-11/bin/java" 1010
   - para confirmar: java -version
+
+- FAZER o mesmo para o COMPILADOR
+- sudo update-alternatives --install "/usr/bin/javac" "javac" "/usr/lib/jvm/jdk-11/bin/javac" 1010
+- para confirmar: java -version
+
+### Por fim para selecionar a versão desejada digite:
+
+- sudo update-alternatives --config javac // para compilador
+- udo update-alternatives --config java // para execução
