@@ -206,3 +206,7 @@ int randomNumber = (int)doubleRandomNumber;
 - Lib Gson > converte objeto java para objeto Json
 - Lib Jackson > converte objeto Json para objeto java (tb conhecido como jackson databind)
   - ex. new ObjectMapper().readValue(responseBody, type.class)
+
+## Conceitos Interface x Classe Abstrata
+
+- https://youlearncode.com/java-interface/
