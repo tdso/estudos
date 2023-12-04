@@ -210,3 +210,13 @@ int randomNumber = (int)doubleRandomNumber;
 ## Conceitos Interface x Classe Abstrata
 
 - https://youlearncode.com/java-interface/
+
+## JPAStreamer
+
+- https://www.freecodecamp.org/news/get-started-with-quarkus-and-jpastreamer-2/
+
+## Thread Virtual
+
+- https://mjovanc.com/java/java-21-a-deep-dive-into-virtual-threads/
+
+- https://dzone.com/articles/quarkus-3-the-future-of-java-microservices-with-vi

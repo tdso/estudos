@@ -737,3 +737,9 @@ public void testExample() {
 ```
 
 p. 269
+
+### Thread Virtual
+
+- https://dzone.com/articles/quarkus-3-the-future-of-java-microservices-with-vi
+
+- https://mjovanc.com/java/java-21-a-deep-dive-into-virtual-threads/

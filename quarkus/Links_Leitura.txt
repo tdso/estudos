@@ -1,0 +1,14 @@
+
+ResultSetMapping - JPA
+https://www.baeldung.com/jpa-sql-resultset-mapping
+
+Projecao JPA
+https://vladmihalcea.com/the-best-way-to-map-a-projection-query-to-a-dto-with-jpa-and-hibernate/
+
+Anotacoes JPA
+Key annotations you need to know when working with JPA and Hibernate
+https://thorben-janssen.com/key-jpa-hibernate-annotations/
+
+Anotacoes JPA
+https://www.digitalocean.com/community/tutorials/jpa-hibernate-annotations
+
