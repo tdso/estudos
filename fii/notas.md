@@ -7,6 +7,7 @@
 | HGCR11 | 38 CDI+3.5 + 61 IPCA+8,6 | $101,91 | 11/3     |                         |
 | PLCR11 | 21 CDI+3.3 + 68 IPCA+6   | $91,78  | 11/23    | pouca liquidez          |
 | RECR11 | 19 CDI+4.2 + 80 IPCA+7,9 | $95,25  | 11/23    |                         |
+| KNSC11 | 40 CDI+3.0 + 60 IPCA+6,7 |         |          |                         |
 | VGIP11 | 100 IPCA+8,16            | $92,12  | 11/23    | 70% protecao a deflacao |
 | KNIP11 | 93 IPCA+7,8              | -       | 11/23    |                         |
 | MCCI11 | 91 IPCA+7,4              | -       | 11/23    |                         |
@@ -27,15 +28,17 @@
 
 ## Fundos de Tijolo
 
-| Fundo  | Composicao | VP     | Data Ref | Observacao                                     |
-| ------ | ---------- | ------ | -------- | ---------------------------------------------- |
-| RZAT11 | IPCA+9,2   | $99,97 | 11/23    | volátil+div mensal flutua-adquire imov e aluga |
+| Fundo  | Composicao | VP      | Data Ref | Observacao                                     |
+| ------ | ---------- | ------- | -------- | ---------------------------------------------- |
+| RZAT11 | IPCA+9,2   | $99,97  | 11/23    | volátil+div mensal flutua-adquire imov e aluga |
+|        |            | $100,95 | 01/24    |                                                |
 
 ## Fundos Agro
 
-| Fundo  | Composicao | VP      | Data Ref | Observacao    |
-| ------ | ---------- | ------- | -------- | ------------- |
-| RZTR11 |            | $101,09 | 11/23    | contratos pre |
+| Fundo  | Composicao | VP      | Data Ref | Observacao            |
+| ------ | ---------- | ------- | -------- | --------------------- |
+| RZTR11 |            | $101,09 | 11/23    | contratos pre         |
+| RURA11 | CDI+3-3,5  | $10,01  | 12/23    | adm ITAU - diversif - |
 
 ## Fundos Logisticos
 
