@@ -100,6 +100,8 @@ Apagando um commit > NÃO USAR se já enviou para o remoto
 >             > apaga as alterações do commit - volta ao commit anterior
 >             > git reset HEAD~1 --hard (volta 1 commit)
 
+BRANCH
+
 Listando branchs > git branch
 criando branch     > git branch <nome>
 mudando de branch > git checkout <nome>
@@ -135,3 +137,27 @@ TAG
 > checkout na tag > git checkout nome_xx
 > se quiser evoluir o projeto a partir do tag > git checkout -b manut
 >       > cria uma branch chamada manut a partir da tag nome_xx
+
+## CENÁRIO 2 - quando a branch está no remoto e não está na máquina local !?!
+
+Se você deseja trabalhar em uma branch que existe no repositório remoto, mas não na sua máquina local, você pode criar uma cópia local da branch remota usando o comando:
+
+- git checkout -b <nome_da_branch_local> <nome_da_branch_remota>
+
+Isso criará uma nova branch local com o nome <nome_da_branch_local> e a configurará para rastrear a branch remota <nome_da_branch_remota>.
+
+Em seguida, você pode trabalhar na branch local e fazer o push das alterações para a branch remota usando o comando
+
+- git push -u <nome_do_repositório_remoto> <nome_da_branch_local>
+
+Isso criará a branch remota e fará o push das alterações para ela.
+
+Por exemplo, se você deseja criar uma cópia local da branch feature-branch que existe no repositório remoto origin, você pode executar o seguinte comando:
+
+git checkout -b feature-branch origin/feature-branch
+
+Em seguida, você pode trabalhar na branch local feature-branch e fazer o push das alterações para a branch remota feature-branch usando o seguinte comando:
+
+git push -u origin feature-branch
+
+Isso criará a branch remota feature-branch e fará o push das alterações para ela. Lembre-se de substituir feature-branch pelo nome da sua branch e origin pelo nome do seu repositório remoto.
