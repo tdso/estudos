@@ -8,6 +8,8 @@
 
 - Interface que possui um único método abstrato. Suas implementações serão tratadas como expressão lambda.
 
+- Expressão lambda > quando passamos a implementação implicitamente para o método abstrato, como só tem um método abstrato a JVM induz que a implementação é para o método.
+
 - Exemplo de Interfaces Funcionais:
   - Predicate
   - Function
