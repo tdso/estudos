@@ -29,4 +29,9 @@
 apache maven assembly plugin
 ```
 
+## Refêrencias
+
+- Conceitos, Instalação e configurando o Maven
+  http://luizricardo.org/2014/06/instalando-configurando-e-usando-o-maven-para-gerenciar-suas-dependencias-e-seus-projetos-java/
+
 ---

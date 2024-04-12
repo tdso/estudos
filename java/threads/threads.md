@@ -2,6 +2,9 @@
 
 Processos (arquivos executáveis) executam concorrentemente no SO. Threads rodam concorrentemente em um mesmo processo.
 
+Paralelismo: tem a ver com a quantidade de processos sendo executado ao mesmo tempo.
+Concorrência: quando temos mais de um trecho de código executando concorrendo pelo mesmo recurso, ex um arquivo.
+
 Thread representa uma instância da CPU da máquina virtual java, e que tem associado um trecho de código que será executado e uma área de memória.
 
 O uso de threads é recomendado quando executamos pelo menos duas coisas ao mesmo tempo em um programa para aproveitar as múltiplas CPU's ou para evitar que o programa inteiro fique travado ao executar uma operação demorada.
@@ -22,7 +25,16 @@ Revisão:
 - a instância da Thread que foi startada tem que se juntar (método join) a thread que a chamou. Isso fará a thread principal (chamadora) esperar o término da execução da thread, isso é um método bloqueante.
 - por fim, quando o processamento retornar a Thread principal (após o método join)obtenha o resultado chamando o método público que retorna o valor do atributo que armazena a resposta.
 
+## Tipos Thread Safe
+
+- classes atômicas
+- AtomicReference<Object>
+- volatile (ler/gravar na variável de destino e não no cache local)
+
 ### synchronized
+
+A palavra synchronized pode ser usada em um método ou em um trecho de código, para garantir que algum recurso (ex varável)
+seja acessado exclusivamente por uma thread por vez. A desvantagem é a perda do paralelismo neste trecho.
 
 Usamos para sincronizar o acesso ao objeto. As threads executam o bloco synchronized bloqueando o objeto, de forma que somente 1 thread por vez acesse o objeto.
 Podemos usar o synchronized tanto para um método quanto para um bloco de código dentro de um método.
@@ -41,6 +53,33 @@ Volatile e Atomic evitam o uso do synchronized.
 ps: a classe ReentrantLock permite fazermos o lock explicito, mas fica a cargo do dev a liberação do lock (unlock).
 
 Java.util.Vector = thread-safe = lista sincronizado = o código funciona corretamente mesmo com várias threads compartilhando o objeto.
+
+## Executores
+
+- Executors.newFixedThreadPool (x)
+  .newSingleThreadExecutor()
+  .newCachedThreadPool() // não especifica a qtde a JVM gerencia as Threads
+
+- o Executor deve ser sempre encerrado, use o método shutdown()
+
+  - mas e se a tarefa não tiver finalizado ? método: awaitTermination(5, TimeUnit.SECONDS) // espera 5 seg se não terminar é encerrado, após a chamada desse método, chame o shutdown() ou shutdownNow().
+
+- método execute(runnable) // chama uma tarefa q implementa runnable
+- método submit(callable) // chama uma tarefa q implementa callable
+- método invokeAll(lista tarefas) // executa todas as tarefas
+- método invokeAny(lista) // submete todas e pega o resultado da primeiro tarefa
+
+## Schedulers - Tarefas Agendadas
+
+- ScheduleExecutorService = Executors.newScheduleThreadPool
+  Executors.schedule(task, 9, TimeUnit.SECONDS) // agendou para 9s a frente
+  Executors.scheduleAtFixedRate(task, InitialDelay, Periodo, TimeUnit.Seconds)
+  // InitialDelay - qto tempo demora para executar 1 vez
+  // Periodo - de quanto em quanto tempo executa novamente
+  // ex: a cada 1s executa a tarefa mas e se a tarefa demorar mais de 1s para executar ?
+  // assim que acabar a execução já vai iniciar a outra sem esperar 1s
+  // método scheduleWithFixedDelay > sempre vai ter um intervalo de 1s entre as execuções
+  // independente do tempo que a tarefa demorar
 
 ### Esperando uma thread
 

@@ -1,6 +1,7 @@
 ### CompletableFuture
 
 - substitui o Future - a interface Future representa o resultado da computação assíncrona - processo de entrega de um resultado que será computado no futuro;
+  - o objetivo é não bloquear a thread principal
   - o Future e o Callable precisam de um Executor
   - método get() - bloqueante para obter o resultado
 - evolução Future - mais poderoso
@@ -22,12 +23,25 @@
 
 Métodos:
 
-- thenApply - pode rodar métodos de forma sincrono ou assincrona
+- thenApply - execução na mesma thread um após o outro
+
+- thenApplyAsync - executará o processo em outra thread mas continua sendo um após o outro
+
 - thenCompose - pode rodar métodos de forma sincrono ou assincrona
 
-### synchronized (apagar)
+- thenCombine (outroCF(), (a,b) -> a + b)
 
-Usamos para sincronizar o acesso ao objeto. As threads executam o bloco synchronized bloqueando o objeto, de forma que somente 1 thread por vez acesse o objeto.
-Podemos usar o synchronized tanto para um método quanto para um bloco de código dentro de um método.
-Operação atômica = não pode ser interrompida pela metade.
-Todo o bloco syncronized será executado de uma vez só, a thread que executa pode até ser pausada, para outra thread fazer algo, mas nenhuma outra thread pode entrar no bloco synchronized.
+  - quando as 2 operações terminarem combine o resultado de ambas - permite usar o timeout (sempre USE)
+
+- thenAccept - realiza algo quando finalizar
+
+- allOf
+  var fut1 = CompletableFuture.supplyAsync(task);
+  var fut2 = CompletableFuture.supplyAsync(task);
+  CompletableFuture.allOf(fut1, fut2)).join()
+
+- exceptionally (throwable -> handle (throwable))
+  - sempre que chamarmos um evento assíncrono temos que ter um tratamento de exceção / erro
+    - pode ocorrer um live lock - está aguardando um evento que nunca ocorre
+    - método completeOnTimeout(500, 3000) - define uma janela de execução de 3s
+      - se não encerrar vai retornar o valor de 500 para o pipeline
