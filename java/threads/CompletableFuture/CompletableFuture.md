@@ -23,7 +23,7 @@
 
 Métodos:
 
-- thenApply - execução na mesma thread um após o outro
+- thenApply - execução na mesma thread um após o outro - passa o valor para frente
 
 - thenApplyAsync - executará o processo em outra thread mas continua sendo um após o outro
 
