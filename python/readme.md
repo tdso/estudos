@@ -326,7 +326,7 @@ em várias listas - ex:
 - Dict comprehension
 
     - criar um dicionário a partir de uma expressão
-    
+
     - sintaxe: {chave: valor for item in lista}
             -   {expressao_chave: expressao_valor for item in iteravel if condicao}
 
@@ -350,6 +350,13 @@ ex: estados_unicos = list(set(estados))
     - raise <exceção> ("Mensagem")
 
 
+## Analise Descritiva
+
+Frequencia, Histograma, Media, Mediana, Moda, Quartis, Decis, Percentis, Medidas de Dispersão (desvio medio absoluto, desvio padrão e variância)
+
+!pip install pandas==0.21.0
+
+consultar a versão > pandas.__version__
 
 
 
