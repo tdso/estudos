@@ -1,0 +1,30 @@
+
+Aplicável: quando temos uma cadeia (sequência de execução) na qual cada elemento processa 
+as informações e em seguida delega a execução ao próximo da sequência.
+
+Cenário hipotético: recuperar um arquivo do cache, se não achar, recupera-lo do BD,
+se não achar, recuperá-lo do servidor remoto.
+
+Normalmente toda lógica seria implementada na mesma classe com várias condicionais em sequência.
+
+Padrão Chain:
+    - cada possibilidade é implementada em uma classe diferente, que são encadeadas em um fluxo de execução;
+    - cada classe verifica se o arquivo existe e se é válido, retornando o mesmo em caso positivo e 
+    delegando a execução para a próxima instância da cadeia em caso negativo.
+
+Implementação:
+    
+    - definir uma superclasse (classe abstrata) que com possua um atributo do seu próprio tipo, ex proximo;
+    - definir um método abstrato, ex recuperarArquivo() (hook método), a ser implementado pelas subclasses 
+      de acordo com a estratégia adotada.
+    - implementar um método, ex chamarProximo() responsável por verificar se existe um próximo elemento e 
+      invocá-lo, então como ex teriamos:
+        private void chamarProximo(){
+            if (proximo != null){
+                proximo.recuperarArquivo();
+            }
+        }
+    - por fim implementar o método recuperar() que chama o método abstrato recuperarArquivo() e em caso de 
+      insucesso chama o método proximo().
+
+      

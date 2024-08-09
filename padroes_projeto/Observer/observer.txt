@@ -1,0 +1,15 @@
+Aplicável: quando existe um objeto cujos eventos precisam ser observados por outros
+objetos.
+
+Projeto exemplo: workspace/java/patternObserver
+
+CarteiraAcoes                               Interface Observador
+- ListaObservadores:Observador              + mudancaQuantidade()
++ addObserver()                                     ^
++ adicionaAcoes()                                   |
+- notificar()                                 GraficoBarras
+                                            - desenhaGrafico()
+                                            + mudancaQuantidade()
+
+No desenho abaico o método notificar() da classe CarteiraAcoes vai acionar o método
+mudancaQuantidade() de cada instância que estiver na lista de observadores.

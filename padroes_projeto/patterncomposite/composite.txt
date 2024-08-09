@@ -1,0 +1,29 @@
+Aplicável: 
+- Prover uma solução para objetos que representam um conjunto de objetos, mas 
+  que compartilham a mesma abstração.
+- Quando temos a necessidade de que mais de uma ação seja realizada como resposta 
+  a um evento.
+
+Cenário: após a geração de um arquivo precisamos executar diversos pos-processamento 
+sobre o arquivo. Teremos uma interface PosProcessador e uma classe que além de implementar 
+essa interface irá coordenar a execução de diversos pos-processadores. Observe que essa classe 
+é composta por um array de pos-processadores que serão recebidos no construtor. O método 
+processar() executa o mesmo método de forma recursiva nas instâncias de PosProcessador que 
+compoem a classe.
+
+public class PosProcessadorComposto implements PosProcessador {
+
+    private PosProcessador[] processadores;
+
+    public PosProcessadorComposto(PosProcessador ... p) {
+        this.processadores = p;
+    }
+    public byte[] processar (byte[] bytes){
+        bytes[] bytes_proc;
+        for (PosProcessador p:processadores){
+            bytes_proc = p.processar();
+        }
+        return bytes_proc;
+    }
+}
+
