@@ -28,6 +28,28 @@ assim permite que a plataforma subjacente forneça um pool de trabalhadores padr
 4 - A documentação prega cuidado com esse operador, pois pode levar a problemas de simultaneidade com objetos
 não thread-safe
 
+## Diferença entre .emitOn(Infrastructure.getDefaultExecutor()) e .emitOn(Infrastructure.getDefaultWorkerPool())
+
+Infrastructure.getDefaultExecutor():
+
+Este método retorna um Executor padrão que é geralmente utilizado para tarefas leves e rápidas.
+
+É mais adequado para operações que não bloqueiam, como manipulação de eventos ou callbacks rápidos.
+Utilizar .emitOn(Infrastructure.getDefaultExecutor()) significa que as operações serão executadas
+em um pool de threads que é otimizado para tarefas curtas e não bloqueantes.
+
+Infrastructure.getDefaultWorkerPool():
+
+Este método retorna um pool de threads que é mais adequado para tarefas que podem ser mais
+pesadas ou que podem bloquear.
+
+É ideal para operações que podem demorar mais tempo, como I/O intensivo ou processamento
+de dados.
+
+Utilizar .emitOn(Infrastructure.getDefaultWorkerPool()) significa que as operações
+serão executadas em um pool de threads que pode lidar com tarefas mais pesadas e
+potencialmente bloqueantes.
+
 # Conceitos
 
 Munity --> onItem() OU onFailure()
