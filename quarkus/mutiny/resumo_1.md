@@ -9,6 +9,10 @@ Isolar esse código e executá-lo em thread de trabalho.
 
 Projeto referência: ws-quarkus/assincrono
 
+# Atenção
+
+Tenha cuidado ao usar beans com @RequestScoped dentro de uma classe \uni ou Multi. Como operações reativas podem ser executadas em threads diferentes, o contexto da solicitação pode não estar ativo.
+
 # Mutiny
 
 Fornece dois operadores para personalizar as threads de execução:
