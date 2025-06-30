@@ -13,6 +13,8 @@ Projeto referência: ws-quarkus/assincrono
 
 Tenha cuidado ao usar beans com @RequestScoped dentro de uma classe \uni ou Multi. Como operações reativas podem ser executadas em threads diferentes, o contexto da solicitação pode não estar ativo.
 
+Ref. https://myfear.substack.com/p/advanced-cdi-quarkus-native-reactive-scopes
+
 # Mutiny
 
 Fornece dois operadores para personalizar as threads de execução:
