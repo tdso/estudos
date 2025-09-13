@@ -1,0 +1,38 @@
+Java e Quarkus - Aplicações reativas e resilientes [com Kafka] [Alura]
+
+Unidade 1
+- usar mutiny
+- para ser reativo - todo o caminho deve ser reativo - todo o fluxo do inicio ao fim
+- uso anotações: @withTransactionv(manter a transação aberta), @withSession (manter a sessão aberta ao acessar o BD) e @NonBlocking 
+- Libs reativas: quarkus-hibernate-reative-panache, driver sql reativo e quarkus-hibernate-reactive
+- properties: ajustar os valores para reativo (url de banco)
+
+Unidade 2
+- métodos de tolerância a falhas - Fallback, RateLimit, Circuit Break
+
+Unidade 3
+- Dockerfile / Dockercompose com Zookkeper + Kafka
+- Kafka > Topico > Partição 1, 2 ... N
+
+Unidade XX
+- Configurações
+	propriedades: producer.kafka.host = ${QUARKUS_KAFKA_HOST: localhost}:{QUARKUS_KAFKA_ PORT:9092}
+- VER
+	QUARKUS-KAFKA-CLIENTE
+
+- Criando um tópico
+	ex: Docker exec nome-conteiner kafka-topics --create --bootstrap-server localhost:9092 
+		   -- replication -fator 1   // replicar a msg em outras partições
+		   -- partições 1
+		   --tópico nome-do-tópico
+
+- Consultar tópicos - ex: Docker exec nome-conteiner kafka-topics --list --bootstrap-server localhost:9092 
+
+- Lembrar se estiver subindo um contêiner para o Kafka, de desabilitá-lo no devservices 
+	propriedades > quarkus.kafka.devservices. enabled = false
+
+- Desacoplando Transações
+	- uso do Event - dispara um evento para a própria aplicação
+	- ex: um método anotado com @Transaction atualiza o BD e em seguida envia uma mensagem para o broker,
+	como o Transaction não engloba a fila (Broker) para um processo não intervir no outro, envie uma event 
+	para outro método para tratar o envio da mensagem para a fila.
